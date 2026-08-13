@@ -68,6 +68,27 @@ npm run dev
 
 建表脚本见 `data/sql/schema.sql`，数据模型与题库解析方案见 `docs/题库解析方案.md`。
 
+## 题库解析脚本（PDF → JSON）
+
+已提供 `scripts/parse_questions.py`，用通义千问-VL 把 PDF 卷子解析成结构化 JSON。
+
+```bash
+# 1. 把 PDF 卷子放到 data/pdf/
+# 2. 设置阿里云百炼 API Key
+export DASHSCOPE_API_KEY=sk-xxx
+
+# 3. 安装依赖（首次）
+python -m pip install PyMuPDF requests
+
+# 4. 解析（可指定单个卷子，不指定则解析 data/pdf 下全部）
+python scripts/parse_questions.py 2024国考行测.pdf
+```
+
+输出到 `data/json/<卷子名>.json`，格式与 `question` 表字段对应。注意事项：
+- 答案页按「卷子末尾 2 页」启发式识别，可在脚本 `ANSWER_TAIL_PAGES` 调整；
+- 图形题/资料分析图表暂用 `【此处有图】` 占位，图片裁剪留待后续；
+- 解析结果需人工校对（重点核对图形题、答案对位、跨页题），再导入数据库。
+
 ## 版本说明
 
 Spring Boot 用的是 **3.5.16**（3.x 最后一个 OSS 版本，已于 2026-06-30 EOL）。
