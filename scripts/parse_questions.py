@@ -30,10 +30,22 @@ from pathlib import Path
 
 import requests
 
+# ---------- 加载本地 .env（不提交 git） ----------
+def _load_env():
+    env_file = Path(__file__).resolve().parent / ".env"
+    if env_file.exists():
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip())
+
+_load_env()
+
 # ---------- 配置 ----------
 API_KEY = os.getenv("DASHSCOPE_API_KEY", "")
-BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-MODEL = os.getenv("QWEN_VL_MODEL", "qwen-vl-max")
+BASE_URL = os.getenv("DASHSCOPE_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1")
+MODEL = os.getenv("QWEN_VL_MODEL", "qwen3.7-flash")
 
 ROOT = Path(__file__).resolve().parent.parent
 PDF_ROOT = ROOT / "data" / "pdf"
@@ -117,12 +129,28 @@ def extract_json(text):
     return text
 
 
-def normalize(name):
-    """规范化文件名用于配对：去掉「答案/解析/参考」等词"""
-    for w in ["参考答案及解析", "答案及解析", "参考答案", "答案", "解析", "参考"]:
-        name = name.replace(w, "")
-    name = name.replace("【答案+解析】", "")
-    return name.strip()
+def extract_key(name):
+    """提取配对键：年份 + 卷型（应对「网友回忆版」「真题」「答案及解析」等命名变体）"""
+    year = ""
+    m = re.search(r"(20\d{2})", name)
+    if m:
+        year = m.group(1)
+    vol = ""
+    if "行政执法" in name:
+        vol = "行政执法"
+    elif "副省级" in name or "省级" in name:
+        vol = "副省级"
+    elif "地市级" in name or "市地级" in name:
+        vol = "地市级"
+    elif "A卷" in name:
+        vol = "A卷"
+    elif "B卷" in name:
+        vol = "B卷"
+    if not vol:
+        m2 = re.search(r"[（(]([一二三四五六七八九十])[）)]", name)
+        if m2:
+            vol = "卷" + m2.group(1)
+    return year + vol
 
 
 # ---------- 配对 ----------
@@ -134,11 +162,11 @@ def match_papers(category_dir: Path):
     papers = sorted(paper_dir.glob("*.pdf"))
     answers = sorted(answer_dir.glob("*.pdf"))
 
-    answer_map = {normalize(a.stem): a for a in answers}
+    answer_map = {extract_key(a.stem): a for a in answers}
     pairs = []
     unmatched = []
     for p in papers:
-        key = normalize(p.stem)
+        key = extract_key(p.stem)
         if key in answer_map:
             pairs.append((p, answer_map[key]))
         else:
