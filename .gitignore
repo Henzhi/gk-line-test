@@ -1,0 +1,31 @@
+# ===== Java / Maven =====
+backend/target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# ===== IDE =====
+.idea/
+*.iml
+.vscode/
+*.swp
+.DS_Store
+
+# ===== Node / 前端 =====
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+pnpm-debug.log*
+
+# ===== 本地配置 / 数据 =====
+backend/src/main/resources/application-local.yml
+data/pdf/*
+!data/pdf/.gitkeep
+data/json/*.json
+!data/json/.gitkeep
+*.log
+
+# 大模型 API Key 等敏感信息
+.env
+.env.local

@@ -1,0 +1,30 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gk-line-test-backend
+  datasource:
+    url: jdbc:mysql://localhost:3306/gk_line_test?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 请改成你的MySQL密码
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+
+# JWT 配置（secret 长度必须 >= 32 字节，正式部署务必更换）
+jwt:
+  secret: gk-line-test-jwt-secret-key-change-me-in-prod-0123456789
+  expiration: 86400000  # token 有效期，单位毫秒（24小时）
+  header: Authorization
+  prefix: "Bearer "
